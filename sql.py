@@ -5,32 +5,16 @@ class editar_banco():
     def __init__(self, conexao: oracledb.Connection) -> None:
         self.conn = conexao
     
-    def INSERT_COMUNIDADE(self):
+    def INSERT_NEW_COMUNIDADE(self, comunidade):
         cursor = self.conn.cursor()
-
         try:
-            print('Insira os dados da comunidade que deseja inserir no banco de dados:')
-            id: int = input('Id: ')
-            nome: str = input('Nome: ').upper()
-            estado: str = input('Estado: ').upper()
-            qtd_hab: int = input('Número de habitantes: ')
-            referencia: str = input('Referência de localização: ').upper()
-            coord: str = input('Coordenadas: ')
-            etnia: str = input('Etnia: ').upper()
-            # fazer tratamento dos dados digitados
-
-            #usar variaveis assim ou um objeto md.Comunidade?
-            tup = (id, nome, estado, qtd_hab, referencia, coord, etnia)
-
-            cursor.execute("INSERT INTO COMUNIDADE (ID_COMUNIDADE, ESTADO, NOME, NUM_HABITANTES, REFERENCIA_LOC, COORDENADAS_LOC, ETNIA) values(:1, :2, :3, :4, :5, :6, :7)", tup)
+            cursor.execute('INSERT INTO COMUNIDADE(ID_COMUNIDADE, ESTADO, NOME, NUM_HABITANTES, REFERENCIA_LOC, COORDENADAS_LOC, ETNIA) VALUES (:1, :2, :3, :4, :5, :6, :7)', comunidade)
             self.conn.commit()
             cursor.close()
-
-
         except Exception as e:
-            print('Erro ao executar a inserção.', e)
-            return -1
-
+            print("Erro ao executar a inserção")
+            print(e.args)
+    
     def SELECT_ALL_COMUNIDADES(self, filtro:str = None):
         cursor = self.conn.cursor()
         
