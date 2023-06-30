@@ -18,6 +18,7 @@ class Conexao_bd():
         connection = None
         try:
             connection = oracledb.connect(user=self.USER, password=self.PASS, dsn=dsn)
+            print('Conexão iniciada com sucesso!')
         except oracledb.DatabaseError as e:
             error_code = e.args[0].code
             error_msg  = e.args[0].message
