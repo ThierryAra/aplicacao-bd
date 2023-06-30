@@ -4,6 +4,12 @@ from tabels import Menu
 from rich.console import Console
 
 
+def check_str(string):
+    for letra in string:
+        if not letra.isalpha() or letra != ' ':
+            return False
+    return True
+
 console = Console()
 menu = Menu()
 bd = Conexao_bd()
@@ -28,30 +34,31 @@ if opcao_escolhida == 1:
         id: int = int(input('Id: '))
 
         nome: str = input('Nome: ').upper()
-        if not nome.isalpha():
+        if check_str(nome):
             raise ValueError
         
         estado: str = input('Estado: ').upper()
-        if not estado.isalpha() or len(estado) > 30:
+        if check_str(estado) or len(estado) > 30:
             raise ValueError
         
         qtd_hab: int = int(input('Número de habitantes: '))
 
         referencia: str = input('Referência de localização: ').upper()
-        if not referencia.isalpha():
+        if check_str(referencia):
             raise ValueError
         
         coord: str = input('Coordenadas: ')
-        if not coord.isalpha():
+        if coord[0] == ';':
             raise ValueError
         
         etnia: str = input('Etnia: ').upper()
-        if not etnia.isalpha():
+        if check_str(etnia):
             raise ValueError
 
         comunidade = (id, estado, nome, qtd_hab, referencia, coord, etnia)
         edit.INSERT_NEW_COMUNIDADE(comunidade)
-    except ValueError:
+    except Exception as e:
+        print(e.args)
         print("Por favor coloque inteiros/palavras quando necessário e de tamanhos corretos (ex.: Estado deve ter no máximo 30 caracteres)")
 
 elif opcao_escolhida == 2:
