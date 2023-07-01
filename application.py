@@ -1,4 +1,4 @@
-from conexao import Conexao_bd
+from connection_bd import Conexao_bd
 from sql import Editar_banco
 from tabels import Menu
 from rich.console import Console
@@ -86,7 +86,7 @@ def inserir_comunidade(console:Console, edit:Editar_banco):
             raise ValueError
         
         estado: str = input('Estado: ').upper()
-        if not isinstance(estado, str) or len(estado) > 30:
+        if not isinstance(estado, str) or len(estado) > 2:
             raise ValueError
         
         qtd_hab: int = int(input('Número de habitantes: '))

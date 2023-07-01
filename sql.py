@@ -75,7 +75,7 @@ class Editar_banco():
 
 
 # Teste para inserções/selects
-from conexao import Conexao_bd
+from connection_bd import Conexao_bd
 if __name__ == '__main__':
     bd = Conexao_bd()
     con = bd.conectar()
