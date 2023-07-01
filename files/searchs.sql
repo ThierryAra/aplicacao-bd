@@ -36,16 +36,6 @@ WHERE (
 ) <= 1
 ORDER BY F.CUSTO DESC;
 
-
--- Selecionar o gasto com roteadores por estado em ordem crescente.
-SELECT C.ESTADO, SUM(F.CUSTO) AS GASTO_TOTAL
-FROM FORNECIMENTO F
-JOIN ROTEADOR R ON F.ROTEADOR = R.MAC_ADDRESS
-JOIN COMUNIDADE C ON F.COMUNIDADE = C.ID_COMUNIDADE
-GROUP BY C.ESTADO
-ORDER BY GASTO_TOTAL ASC;
-
-
 --Selecionar a velocidade média dos roteadores por estado
 SELECT C.ESTADO, AVG(R.VELOCIDADE_MBPS) AS VelocidadeMedia
 FROM FORNECIMENTO F

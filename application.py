@@ -1,50 +1,100 @@
 from conexao import Conexao_bd
-from sql import editar_banco
+from sql import Editar_banco
 from tabels import Menu
 from rich.console import Console
+from time import sleep
+import sys, os, signal
 
-
-def check_str(string):
-    for letra in string:
-        if not letra.isalpha() or letra != ' ':
-            return False
-    return True
-
-console = Console()
-menu = Menu()
-bd = Conexao_bd()
+bd  = Conexao_bd()
 con = bd.conectar()
-edit = editar_banco(con)
 
-console.print("[bold]Bem vindo!!![/]")
+def apagar_linhas(qtd:int = 2):
+    for _ in range(qtd):
+        sys.stdout.write('\033[F')
+        sys.stdout.write('\033[K') 
+        
+def limpar_console():
+    if os.name == 'nt':  
+        os.system('cls')
+    else:
+        os.system('clear')
+               
+# Finalização do programa (CTRL + C)
+def handler(signal, frame):
+    limpar_console()
+        
+    print("Programa finalizado. Desconectando...\n")
+    
+    bd.desconectar(con)
+    sys.exit(0)
+signal.signal(signal.SIGINT, handler)
 
-console.print("Por favor selecione uma das opções abaixo para a operação desejada!")
 
-opcoes = menu.get_options_table()
-console.print(opcoes)
+def run():
+    if not con:
+        return -1
+    
+    console = Console()
+    menu = Menu()
+    edit = Editar_banco(con)
+    
+    console.print("\n[bold]Bem vindo!!![/]\n")
 
-try:
-    opcao_escolhida = int(input("Digite a opção desejada: "))
-except ValueError:
-    console.print("[bold] Por favor digite um número[red] inteiro [/]")
+    opcao_escolhida = None
+    while(opcao_escolhida != '0'):
+        opcao_escolhida = None
+        console.print("Por favor selecione uma das opções abaixo para a operação desejada!")
 
-if opcao_escolhida == 1:
-    console.print("Vamos agora inserir uma [bold]nova comunidade[/] ao banco\n Para isso, precisamos dos dados preenchidos")
+        opcoes = menu.get_options_table()
+        console.print(opcoes)
+
+        erros = 1
+        while opcao_escolhida not in range(4):
+            try:
+                opcao_escolhida = int(input("Digite a opção desejada: "))
+                if opcao_escolhida not in range(4):
+                    raise ValueError
+            except ValueError:
+                apagar_linhas(erros)
+                erros = 2
+                console.print("[bold] Por favor digite um número[red] inteiro válido[/]")
+
+        if opcao_escolhida == 1:
+            inserir_comunidade(console, edit)
+                
+        elif opcao_escolhida in [2, 3]:
+            comunidade_desejada = None
+            
+            if opcao_escolhida == 3:
+                comunidade_desejada = input("\nQual é a comunidade desejada? ").upper()
+                
+            buscar_comunidade(console, menu, edit, comunidade_desejada)
+        
+    bd.desconectar(con)
+    
+def inserir_comunidade(console:Console, edit:Editar_banco):
+    console.print('''Vamos agora inserir uma [bold]nova comunidade[/] ao banco\n 
+            Para isso, precisamos dos dados preenchidos''')
+            
     try:
-        id: int = int(input('Id: '))
-
+        id: int = int(input('ID: '))
+        if not isinstance(id, int):
+            raise ValueError
+        
         nome: str = input('Nome: ').upper()
-        if check_str(nome):
+        if not isinstance(nome, str):
             raise ValueError
         
         estado: str = input('Estado: ').upper()
-        if check_str(estado) or len(estado) > 30:
+        if not isinstance(estado, str) or len(estado) > 30:
             raise ValueError
         
         qtd_hab: int = int(input('Número de habitantes: '))
-
+        if not isinstance(qtd_hab, int):
+            raise ValueError
+        
         referencia: str = input('Referência de localização: ').upper()
-        if check_str(referencia):
+        if not isinstance(referencia, str):
             raise ValueError
         
         coord: str = input('Coordenadas: ')
@@ -52,32 +102,32 @@ if opcao_escolhida == 1:
             raise ValueError
         
         etnia: str = input('Etnia: ').upper()
-        if check_str(etnia):
+        if not isinstance(etnia, str):
             raise ValueError
 
         comunidade = (id, estado, nome, qtd_hab, referencia, coord, etnia)
         edit.INSERT_NEW_COMUNIDADE(comunidade)
+    except ValueError as e:
+        print('''\nPor favor coloque inteiros/palavras quando necessário e
+          de tamanhos corretos (ex.: Estado deve ter no máximo 30 caracteres)''')
+        print('\t',e.args)
+        sleep(5)
     except Exception as e:
-        print(e.args)
-        print("Por favor coloque inteiros/palavras quando necessário e de tamanhos corretos (ex.: Estado deve ter no máximo 30 caracteres)")
-
-elif opcao_escolhida == 2:
+        print('Não foi possível realizar a inserção. \nErro desconhecido: ', e)
+        return -1
+  
+def buscar_comunidade(console:Console, menu:Menu, edit:Editar_banco, mensagem:str = None):
     comunidades = menu.get_community_table()
-    resultado = edit.SELECT_ALL_COMUNIDADES()
-    for comunidade in resultado:
-        comunidades.add_row(str(comunidade.id), str(comunidade.estado), str(comunidade.nome), str(comunidade.qtd_hab), str(comunidade.referencia), str(comunidade.coord), str(comunidade.etnia))
+    resultado = edit.SELECT_COMUNIDADES(mensagem)
     
-    console.print(comunidades)
-elif opcao_escolhida == 3:
-    comunidade_desejada = input("\nQual é a comunidade desejada? ").upper()
-    resultado = edit.SELECT_ALL_COMUNIDADES(comunidade_desejada)
-    if resultado: 
-        comunidades = menu.get_community_table("Comunidade selecionada")
+    if resultado:
         for comunidade in resultado:
-            comunidades.add_row(str(comunidade.id), str(comunidade.estado), str(comunidade.nome), str(comunidade.qtd_hab), str(comunidade.referencia), str(comunidade.coord), str(comunidade.etnia))
+            comunidades.add_row(str(comunidade.id), str(comunidade.estado), 
+                                str(comunidade.nome), str(comunidade.qtd_hab), 
+                                str(comunidade.referencia), str(comunidade.coord), 
+                                str(comunidade.etnia))
         
         console.print(comunidades)
-    else:
-        console.print("\nA comunidade desejada [bold]não[/] existe\n")
-
-bd.desconectar(con)
+    elif resultado != -1:
+        console.print("\n[bold]Não[/] existem comunidades ", 
+                      "com esse padrão.\n\n" if mensagem else "cadastradas.\n\n", style='red')
