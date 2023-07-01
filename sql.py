@@ -24,7 +24,7 @@ class Editar_banco():
             error_message = str(e.args[0]).lower()
             
             print()
-            if 'parent key not found' in error_message:
+            if 'fk_comunidade_estado' in error_message:
                 print("Estado inválido!")
             elif 'pk_comunidade' in error_message:
                 print("ID da comunidade já existe!")
